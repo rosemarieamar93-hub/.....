@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMIT Faculty Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --primary-orange: #FF8C32;
+            --bg-cream: #FFF5ED;
+            --text-dark: #2D3436;
+            --text-gray: #A0AEC0;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-cream); 
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+                /* --- Sidebar Fix --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: calc(100vh - 40px);
+            background: white;
+            position: fixed;
+            left: 20px; 
+            top: 20px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            z-index: 1050;
+            padding: 30px 15px;
+            
+            /* Allow scrolling so we can see the collapse, but hide the bar */
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .sidebar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Rotate the chevron when the menu is open */
+        .nav-link[aria-expanded="true"] .fa-chevron-down {
+            transform: rotate(180deg);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link {
+            color: var(--text-gray);
+            padding: 12px 20px;
+            border-radius: 15px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            transition: 0.3s;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .nav-link i { width: 25px; font-size: 18px; margin-right: 10px; }
+        .nav-link:hover { color: var(--primary-orange); background: #fffcf9; }
+
+        .nav-link.active {
+            background: var(--primary-orange);
+            color: white !important;
+            box-shadow: 0 10px 20px rgba(255, 140, 50, 0.3);
+        }
+
+        .btn-primary, .bg-orange-500 {
+            background: linear-gradient(135deg, #ff8c32 0%, #ff6d00 100%);
+            border: 1px solid #ff8c32;
+            box-shadow: 0 10px 25px rgba(255, 140, 50, 0.22);
+        }
+
+        .btn-primary:hover, .bg-orange-500:hover {
+            background: linear-gradient(135deg, #ff9f49 0%, #ff7b0c 100%);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary, .bg-slate-900 {
+            background: linear-gradient(135deg, #1f2937 0%, #0f172a 100%);
+            border: 1px solid #1f2937;
+            color: #ffffff;
+        }
+
+        .btn-secondary:hover, .bg-slate-900:hover {
+            background: linear-gradient(135deg, #374151 0%, #111827 100%);
+        }
+
+        .dept-logo-sm {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        /* --- Main Content --- */
+        .main-wrapper {
+            margin-left: calc(var(--sidebar-width) + 40px);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            border-top-right-radius: 40px;
+            border-bottom-right-radius: 40px;
+            padding: 1.5rem;
+        }
+
+        .main-wrapper header {
+            background: #ffffff;
+            border-radius: 1.25rem;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+            padding: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        .main-wrapper h2, .main-wrapper h3, .main-wrapper h4 {
+            color: #1f2937;
+        }
+
+        .faculty-card {
+            background: #ffffff;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
+        }
+
+        /* Utility: safer border radius for older parsers */
+        .rounded-2-5rem {
+            border-radius: 2.5rem !important;
+        }
+
+        /* --- Mobile Adjustments --- */
+        @media (max-width: 1024px) {
+            .sidebar { left: -320px; }
+            .sidebar.mobile-active { left: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.1); }
+            .main-wrapper { margin-left: 0; }
+            .overlay {
+                display: none; position: fixed; inset: 0;
+                background: rgba(15, 23, 42, 0.4); z-index: 1040;
+                backdrop-filter: blur(4px);
+            }
+            .overlay.active { display: block; }
+        }
+
+        /* --- Small mobile tweaks --- */
+        @media (max-width: 768px) {
+            body { font-size: 14px; }
+            .main-wrapper { margin-left: 0; padding: 12px; }
+            header { flex-wrap: wrap; gap: 0.75rem; }
+            .main-wrapper header .relative { width: 100%; max-width: none; }
+            .main-wrapper header .flex.items-center.space-x-4 { width: 100%; justify-content: space-between; }
+            .faculty-card, .main-wrapper > .bg-white.p-10 { padding: 1.25rem; }
+            .faculty-card .grid.grid-cols-2 { grid-template-columns: 1fr; }
+            .flex.items-center.justify-between.mb-6 { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .flex.items-center.justify-between.mb-6 .flex.items-center.space-x-4 { width: 100%; }
+            .flex.items-center.justify-between.mb-6 i { font-size: 0.85rem; }
+            .flex.items-center.space-x-2.mb-8 { flex-wrap: wrap; }
+            .flex.items-center.space-x-2.mb-8 button { flex: 1 1 auto; min-width: 120px; }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
+</head>
+<body class="custom-scrollbar">
+
+    <div class="overlay" id="sidebarOverlay"></div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header flex flex-col items-center text-center px-4">
+            <div class="w-20 h-20 bg-white rounded-[2rem] shadow-xl shadow-orange-100/50 flex items-center justify-center mb-4 p-2 border border-orange-50">
+                <img src="smit.jpg" class="w-full h-full object-contain" alt="SMIT Logo" onerror="this.src='https://ui-avatars.com/api/?name=SMIT&background=FF8C32&color=fff'">
+            </div>
+            <h6 class="text-[11px] font-black text-slate-800 uppercase tracking-tighter leading-tight">Southern Mindanao</h6>
+            <p class="text-[9px] font-bold text-orange-500 uppercase tracking-widest">Institute of Technology</p>
+        </div>   
+        
+        <nav class="nav flex-column mt-4">
+            <a href="dash.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="library.html" class="nav-link"><i class="fa-solid fa-book-open"></i> <span>Library</span></a>
+            <a href="faculty.html" class="nav-link active" ><i class="fa-solid fa-chalkboard-teacher"></i> <span>Faculty</span></a>
+            <a href="clinic.html" class="nav-link"><i class="fa-solid fa-house-medical"></i> Clinic</a>
+            <a href="cashier.html" class="nav-link"><i class="fa-solid fa-cash-register"></i> Cashier</a>
+            <a href="registrar.html" class="nav-link"><i class="fa-solid fa-file-signature"></i> Registrar Office</a>
+            <a href="president.html" class="nav-link"><i class="fa-solid fa-building-columns"></i> President's Office</a>
+            <a href="HR.html" class="nav-link"><i class="fa-solid fa-users-gear"></i> HR</a>
+            <a href="facilities.html" class="nav-link"><i class="fa-solid fa-school"></i> Facilities</a>
+
+            <div class="text-slate-500 text-[10px] uppercase font-bold mt-8 mb-2 ml-2 tracking-widest">Programs & Colleges</div>
+            
+            <a href="#" class="nav-link text-[12px] py-2 hover:translate-x-1 transition-transform">
+                <img src="departmentPicture/it.jpeg" class="dept-logo-sm me-2"> BS in Information Technology
+            </a>
+            <a href="#" class="nav-link text-[12px] py-2 hover:translate-x-1 transition-transform">
+                <img src="departmentPicture/hm.webp" class="dept-logo-sm me-2"> BS in Hospitality Management
+            </a>
+            <a href="#" class="nav-link text-[12px] py-2 hover:translate-x-1 transition-transform">
+                <img src="departmentPicture/midwife.jpeg" class="dept-logo-sm me-2">Bs in Midwifery
+            </a>
+            <a href="#" class="nav-link text-[12px] py-2 hover:translate-x-1 transition-transform">
+                <img src="departmentPicture/crim.jpeg" class="dept-logo-sm me-2">BS in Criminology
+            </a>
+            <a href="#" class="nav-link text-[12px] py-2 hover:translate-x-1 transition-transform">
+                <img src="departmentPicture/educ.jpg" class="dept-logo-sm me-2"> BS in Education
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-wrapper">
+        <header class="flex items-center justify-between mb-10">
+            <div class="relative w-full max-w-md">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" placeholder="Search faculty member..." 
+                       class="w-full pl-12 pr-4 py-3 bg-white rounded-2xl text-sm border-none shadow-sm focus:ring-2 focus:ring-orange-200 outline-none">
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden md:block">
+                    <p class="text-xs font-black text-slate-800">Admin Portal</p>
+                    <p class="text-[10px] text-orange-500 font-bold">2026 Academic Year</p>
+                </div>
+                <button class="bg-slate-900 text-white w-12 h-12 rounded-2xl flex items-center justify-center hover:bg-orange-600 transition-all shadow-lg shadow-slate-200">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="bg-white rounded-2-5rem p-10 mb-10 shadow-sm border border-orange-50 flex flex-col md:flex-row justify-between items-center relative overflow-hidden">
+            <div class="relative z-10">
+                <span class="bg-orange-100 text-orange-600 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Member Directory</span>
+                <h2 class="text-5xl font-black text-slate-800 tracking-tighter mb-2">Faculty <span class="text-orange-500">Members</span></h2>
+                <p class="text-slate-500 font-medium">Manage educators, track departments, and view staff profiles.</p>
+            </div>
+            <div class="mt-6 md:mt-0 flex gap-4 relative z-10">
+                <div class="bg-slate-50 p-6 rounded-[2rem] text-center border border-white">
+                    <p class="text-3xl font-black text-slate-800">76</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Staff</p>
+                </div>
+                <div class="bg-orange-500 p-6 rounded-[2rem] text-center text-white shadow-xl shadow-orange-100">
+                    <p class="text-3xl font-black">12</p>
+                    <p class="text-[10px] font-bold uppercase tracking-widest opacity-80">Departments</p>
+                </div>
+            </div>
+            <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-orange-50 rounded-full opacity-50"></div>
+        </div>
+
+        <div class="flex items-center space-x-2 mb-8 overflow-x-auto pb-2 custom-scrollbar">
+            <button class="px-6 py-2.5 rounded-xl bg-orange-500 text-white text-xs font-bold whitespace-nowrap">All Faculty</button>
+            <button class="px-6 py-2.5 rounded-xl bg-white text-slate-500 hover:text-orange-500 text-xs font-bold whitespace-nowrap transition-all">IT Faculty</button>
+            <button class="px-6 py-2.5 rounded-xl bg-white text-slate-500 hover:text-orange-500 text-xs font-bold whitespace-nowrap transition-all">HM Faculty</button>
+            <button class="px-6 py-2.5 rounded-xl bg-white text-slate-500 hover:text-orange-500 text-xs font-bold whitespace-nowrap transition-all">Midwifery</button>
+            <button class="px-6 py-2.5 rounded-xl bg-white text-slate-500 hover:text-orange-500 text-xs font-bold whitespace-nowrap transition-all">Admin Staff</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <div class="faculty-card p-6 rounded-2-5rem shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <img src="https://ui-avatars.com/api/?name=Ronnie+Miranda&background=FF8C32&color=fff" 
+                                 class="w-16 h-16 rounded-[1.5rem] object-cover shadow-inner border-2 border-white">
+                            <span class="absolute -top-1 -right-1 w-5 h-5 bg-green-500 border-4 border-white rounded-full"></span>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-black text-slate-800 leading-tight">Ronnie Miranda</h4>
+                            <p class="text-[10px] font-bold text-orange-500 uppercase">Senior Instructor</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-center text-xs text-slate-500 font-medium">
+                        <i class="fa-solid fa-id-card w-6 text-slate-300"></i> 
+                        <span>Faculty ID: <span class="text-slate-800 font-bold">2024-001</span></span>
+                    </div>
+                    <div class="flex items-center text-xs text-slate-500 font-medium">
+                        <i class="fa-solid fa-envelope w-6 text-slate-300"></i> 
+                        <span>r.miranda@smit.edu.ph</span>
+                    </div>
+                    <div class="flex items-center text-xs text-slate-500 font-medium">
+                        <i class="fa-solid fa-building w-6 text-slate-300"></i> 
+                        <span class="bg-orange-50 text-orange-600 px-2 py-0.5 rounded text-[9px] font-black uppercase">BSIT Dept</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-50">
+                    <button class="py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all">Profile</button>
+                    <button class="py-3 bg-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Message</button>
+                </div>
+            </div>
+
+            <div class="faculty-card p-6 rounded-2-5rem shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <img src="https://ui-avatars.com/api/?name=Kervie+De+Juan&background=4F46E5&color=fff" 
+                                 class="w-16 h-16 rounded-[1.5rem] object-cover shadow-inner border-2 border-white">
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-black text-slate-800 leading-tight">Kervie De Juan</h4>
+                            <p class="text-[10px] font-bold text-indigo-500 uppercase">IT Specialist</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-center text-xs text-slate-500 font-medium">
+                        <i class="fa-solid fa-id-card w-6 text-slate-300"></i> 
+                        <span>Faculty ID: <span class="text-slate-800 font-bold">2024-008</span></span>
+                    </div>
+                    <div class="flex items-center text-xs text-slate-500 font-medium">
+                        <i class="fa-solid fa-envelope w-6 text-slate-300"></i> 
+                        <span>k.dejuan@smit.edu.ph</span>
+                    </div>
+                    <div class="flex items-center text-xs text-slate-500 font-medium">
+                        <i class="fa-solid fa-building w-6 text-slate-300"></i> 
+                        <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[9px] font-black uppercase">IT Dept</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-50">
+                    <button class="py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all">Profile</button>
+                    <button class="py-3 bg-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Message</button>
+                </div>
+            </div>
+
+            <div class="faculty-card p-6 rounded-2-5rem shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <img src="https://ui-avatars.com/api/?name=Dylean+Apsay&background=10B981&color=fff" 
+                                 class="w-16 h-16 rounded-[1.5rem] object-cover shadow-inner border-2 border-white">
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-black text-slate-800 leading-tight">Dylean Apsay</h4>
+                            <p class="text-[10px] font-bold text-teal-600 uppercase">Admin Officer</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-center text-xs text-slate-500 font-medium">
+                        <i class="fa-solid fa-id-card w-6 text-slate-300"></i> 
+                        <span>Faculty ID: <span class="text-slate-800 font-bold">2024-005</span></span>
+                    </div>
+                    <div class="flex items-center text-xs text-slate-500 font-medium">
+                        <i class="fa-solid fa-envelope w-6 text-slate-300"></i> 
+                        <span>d.apsay@smit.edu.ph</span>
+                    </div>
+                    <div class="flex items-center text-xs text-slate-500 font-medium">
+                        <i class="fa-solid fa-building w-6 text-slate-300"></i> 
+                        <span class="bg-teal-50 text-teal-600 px-2 py-0.5 rounded text-[9px] font-black uppercase">Admin Dept</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-50">
+                    <button class="py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all">Profile</button>
+                    <button class="py-3 bg-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Message</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="profileModal" class="fixed inset-0 z-[2000] hidden">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeModal()"></div>
+        
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl p-4">
+            <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-orange-50 animate-in fade-in zoom-in duration-300">
+                
+                <div class="relative h-32 bg-slate-900">
+                    <div class="absolute -bottom-12 left-10 flex items-end space-x-6">
+                        <img id="modalImg" src="" class="w-32 h-32 rounded-[2rem] border-8 border-white shadow-lg bg-white">
+                        <div class="mb-4">
+                            <h3 id="modalName" class="text-2xl font-black text-slate-800 tracking-tight"></h3>
+                            <p id="modalRole" class="text-xs font-bold text-orange-500 uppercase tracking-widest"></p>
+                        </div>
+                    </div>
+                    <button onclick="closeModal()" class="absolute top-6 right-6 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-all">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="pt-20 p-10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Educational History</h5>
+                            <ul class="space-y-4">
+                                <li class="flex items-start space-x-3">
+                                    <div class="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500"></div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-800">Master of Information Technology</p>
+                                        <p class="text-[10px] text-slate-500 italic">UP Diliman, 2018</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <div class="mt-1 w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-800">BS In Information Technology</p>
+                                        <p class="text-[10px] text-slate-500 italic">SMIT, 2014</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Subjects Taught</h5>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1.5 bg-orange-50 text-orange-600 rounded-xl text-[10px] font-bold">Advanced Networking</span>
+                                <span class="px-3 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-bold">Web Development</span>
+                                <span class="px-3 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-bold">Data Structures</span>
+                                <span class="px-3 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-bold">UI/UX Design</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-10 pt-8 border-t border-slate-50 grid grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <p class="text-lg font-black text-slate-800">8 Years</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase">Service</p>
+                        </div>
+                        <div class="text-center border-x border-slate-50">
+                            <p class="text-lg font-black text-slate-800">14</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase">Active Classes</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-lg font-black text-slate-800">Excellent</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase">Rating</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
